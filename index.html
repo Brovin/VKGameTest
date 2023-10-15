@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Нубик Паркур</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+</head>
+<body class="dark">
+<div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas"></canvas>
+</div>
+<div id="loading-cover" style="display:none;">
+    <div id="unity-loading-bar">
+        <div id="unity-progress-bar-empty" style="display: none;">
+            <div id="unity-progress-bar-full"></div>
+        </div>
+        <div class="spinner"></div>
+    </div>
+</div>
+<script>
+    const hideFullScreenButton = "";
+    const buildUrl = "Build";
+    const loaderUrl = buildUrl + "/Game.loader.js";
+    const config = {
+        dataUrl: buildUrl + "/5f5ab7789766cc0393ba3e5d1f0c471a.data.unityweb",
+        frameworkUrl: buildUrl + "/8c18c795a3672be5afea770b0a9054ac.js.unityweb",
+        codeUrl: buildUrl + "/35be4b87d9a8c4a6161fb7f9bf215feb.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Boris Brovin",
+        productName: "Нубик Паркур",
+        productVersion: "0.1",
+    };
+
+    const container = document.querySelector("#unity-container");
+    const canvas = document.querySelector("#unity-canvas");
+    const loadingCover = document.querySelector("#loading-cover");
+    const progressBarEmpty = document.querySelector("#unity-progress-bar-empty");
+    const progressBarFull = document.querySelector("#unity-progress-bar-full");
+    const spinner = document.querySelector('.spinner');
+
+    const canFullscreen = (function () {
+        for (const key of [
+            'exitFullscreen',
+            'webkitExitFullscreen',
+            'webkitCancelFullScreen',
+            'mozCancelFullScreen',
+            'msExitFullscreen',
+        ]) {
+            if (key in document) {
+                return true;
+            }
+        }
+        return false;
+    }());
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        container.className = "unity-mobile";
+        //config.devicePixelRatio = 1;
+    }
+    
+    loadingCover.style.display = "";
+
+    canvas.addEventListener("touchstart", () => { window.focus() });
+    canvas.addEventListener("pointerdown", () => { window.focus() });
+
+    let player;
+    let leaderboard;
+    let unityI = null;
+    let payments = null;
+    let promptCanShow = false;
+    let reviewCanShow = false;
+    let initSDK = false;
+    let initGame = false;
+    let photoSizeForInit;
+    let scopesForInit;
+
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+            spinner.style.display = "none";
+            progressBarEmpty.style.display = "";
+            progressBarFull.style.width = `${100 * progress}%`;
+        }).then((unityInstance) => {
+            unityI = unityInstance;
+            loadingCover.style.display = "none";
+        }).catch((message) => {
+            alert(message);
+        });
+    };
+
+    VKGames.init()
+        .then(vksdk => {
+            window.vksdk = vksdk;
+            initSDK = true;
+            
+            if (initGame == true) {
+                AuthorizationCheck();
+            }
+        });
+
+    function authorizationCheck() {
+        initGame = true;
+        if (initSDK == true) {
+            initPlayer();
+        }
+    }
+
+    function initPlayer() {
+        try {
+            vkBridge.send('VKWebAppInit');
+        } catch (e) {
+            console.error('Error init Player: ', e.message);
+            unityI.SendMessage('VKSDK', 'UserNotAuth');
+            window.focus();
+        }
+    }
+
+    function getUserData() {
+        try {
+            vkBridge.send("VKWebAppStorageGet",{"keys":["_save"]}).then(data =>{
+                console.log(data);
+                unityI.SendMessage('VKSDK', 'DataGetting', JSON.stringify(data));
+            });
+        } catch (e) {
+            console.error('Load saves cloud: ', e.message);
+            unityI.SendMessage('VKSDK', 'UserNotAuth');
+        }
+    }
+
+    function setUserData(_data) {
+        console.log(data);
+        vkBridge.send('VKWebAppStorageSet',{"key": "_save" , "value": data}).then(_info =>{
+            console.log("Saved!")
+        });
+    }
+
+    function showFullscrenAd() {
+        vkBridge.send('VKWebAppShowNativeAds',{ad_format:"interstitial"}).then(data => {
+            console.log(data);
+        });
+    }
+
+    document.body.appendChild(script);
+</script>
+</body>
+</html>
