@@ -26,7 +26,7 @@
     const buildUrl = "Build";
     const loaderUrl = buildUrl + "/Game.loader.js";
     const config = {
-        dataUrl: buildUrl + "/5f5ab7789766cc0393ba3e5d1f0c471a.data.unityweb",
+        dataUrl: buildUrl + "/e16b9ffe8cdac0a278de0cfbfef52ba7.data.unityweb",
         frameworkUrl: buildUrl + "/8c18c795a3672be5afea770b0a9054ac.js.unityweb",
         codeUrl: buildUrl + "/35be4b87d9a8c4a6161fb7f9bf215feb.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
@@ -93,14 +93,22 @@
         });
     };
 
-    VKGames.init()
-        .then(vksdk => {
-            window.vksdk = vksdk;
-            initSDK = true;
-            
-            if (initGame == true) {
-                AuthorizationCheck();
+    vkBridge.send('VKWebAppInit')
+        .then((vksdk) => {
+            if (vksdk.result) {
+                window.vksdk = vksdk;
+                initSDK = true;
+
+                if (initGame == true) {
+                    AuthorizationCheck();
+                }
+            } else {
+                unityI.SendMessage('YandexSDK', 'UserNotAuth');
             }
+        })
+        .catch((error) => {
+            unityI.SendMessage('YandexSDK', 'UserNotAuth');
+            console.log(error);
         });
 
     function authorizationCheck() {
@@ -112,10 +120,13 @@
 
     function initPlayer() {
         try {
-            vkBridge.send('VKWebAppInit');
+            console.log('Init player');
+            unityI.SendMessage('YandexSDK', 'UserAuth');
+            getUserData();
+            window.focus();
         } catch (e) {
             console.error('Error init Player: ', e.message);
-            unityI.SendMessage('VKSDK', 'UserNotAuth');
+            unityI.SendMessage('YandexSDK', 'UserNotAuth');
             window.focus();
         }
     }
