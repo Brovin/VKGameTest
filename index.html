@@ -26,7 +26,7 @@
     const buildUrl = "Build";
     const loaderUrl = buildUrl + "/Game.loader.js";
     const config = {
-        dataUrl: buildUrl + "/e16b9ffe8cdac0a278de0cfbfef52ba7.data.unityweb",
+        dataUrl: buildUrl + "/3c9a609b9e51cac42d016ec6db3f32d7.data.unityweb",
         frameworkUrl: buildUrl + "/8c18c795a3672be5afea770b0a9054ac.js.unityweb",
         codeUrl: buildUrl + "/35be4b87d9a8c4a6161fb7f9bf215feb.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
@@ -154,6 +154,30 @@
         vkBridge.send('VKWebAppShowNativeAds',{ad_format:"interstitial"}).then(data => {
             console.log(data);
         });
+    }
+
+    function showInviteBox() {
+        //show pop up for inviting friends to app on web/mobile
+        vkBridge.send("VKWebAppShowInviteBox", {})
+            .then(data => {
+                console.log(data.success)
+                // unityI.SendMessage('VKSDK', 'Invited', JSON.stringify(data.success)) // Можно давать награду за приглашение
+            })
+            .catch(error => console.log(error));
+    }
+
+    function showWallPostBox() {
+        //show pop up for adding post about app to player's wall on web/mobile
+        // Изменять текст в зависимости от игры
+        vkBridge.send("VKWebAppShowWallPostBox", {
+            "message": "Нубик: Паркур - это игра, в которой вам нужно прыгать, преодолевать препятствия и уворачиваться от ловушек.",
+            "attachments": "https://vk.com/app51758613"
+        });
+    }
+
+    function showAppAddToFavoritesBox() {
+        //show pop up for adding app to favorites on web/mobile
+        vkBridge.send("VKWebAppAddToFavorites");
     }
 
     document.body.appendChild(script);
